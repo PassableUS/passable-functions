@@ -1,0 +1,10 @@
+POST http://localhost:5001/passable-a4dba/us-central1/expressApp/schools/createSchool HTTP/1.1
+content-type: application/json
+
+{
+    "input": {"email": "testmgdeme@gmail.com",
+    "password": "dgh728g7dsgdhjksdg",
+    "schoolName": "Bro Moment",
+    "fullName": "Joseph Semrai",
+    "schoolPlaceID": "121223123123"}
+}

@@ -1,32 +1,19 @@
+import * as functions from 'firebase-functions';
+import * as admin from 'firebase-admin';
+import app from './app';
+
+// // Start writing Firebase Functions
+// // https://firebase.google.com/docs/functions/typescript
+//
+// export const helloWorld = functions.https.onRequest((request, response) => {
+//   functions.logger.info("Hello logs!", {structuredData: true});
+//   response.send("Hello from Firebase!");
+// });
 // The Cloud Functions for Firebase SDK to create Cloud Functions and setup triggers.
-const functions = require('firebase-functions');
 
 // The Firebase Admin SDK to access Cloud Firestore.
-const admin = require('firebase-admin');
-const app = require('./app');
 
 admin.initializeApp(functions.config().firebase);
-
-// const updateClaims = (uid) => firestore.collection('claims').doc(uid).get().then((doc) => {
-//   if (!doc) { return {} }
-//   const data = doc.data()
-//   console.log(`${uid} has custom claims`, data)
-//   return data
-// })
-// .then((additionalClaims) => {
-//   const defaultClaims = {
-//     'x-hasura-default-role': 'user',
-//     'x-hasura-allowed-roles': ['user'],
-//     'x-hasura-user-id': uid,
-//   }
-//   const claims = {
-//     'https://hasura.io/jwt/claims': {
-//       ...defaultClaims,
-//       ...additionalClaims,
-//     },
-//   }
-//   return admin.auth().setCustomUserClaims(uid, claims)
-// })
 
 // On sign up.
 exports.processSignUp = functions.auth.user().onCreate((user) => {
@@ -48,30 +35,30 @@ exports.processSignUp = functions.auth.user().onCreate((user) => {
       // This will be captured on the client to force a token refresh.
       return claimRef.set({ refreshTime: new Date().getTime() });
     })
-    .catch((error) => {
+    .catch((error: Error) => {
       console.log(error);
     });
 });
 
-// Update users table
-exports.syncDatabaseOnSignUp = functions.auth.user().onCreate(async (user) => {
-  const { uid: id, email } = user;
-  const mutation = gql`
-    mutation($id: String!, $email: String) {
-      insert_users(objects: [{ id: $id, email: $email }]) {
-        affected_rows
-      }
-    }
-  `;
+// Update users table (handled by functions)
+// exports.syncDatabaseOnSignUp = functions.auth.user().onCreate(async (user) => {
+//   const { uid: id, email } = user;
+//   const mutation = gql`
+//     mutation($id: String!, $email: String) {
+//       insert_users(objects: [{ id: $id, email: $email }]) {
+//         affected_rows
+//       }
+//     }
+//   `;
 
-  try {
-    const data = await client.request(mutation, { id, email });
+//   try {
+//     const data = await graphQLClient.request(mutation, { id, email });
 
-    return data;
-  } catch (e) {
-    throw new functions.https.HttpsError('invalid-argument', e.message);
-  }
-});
+//     return data;
+//   } catch (e) {
+//     throw new functions.https.HttpsError('invalid-argument', e.message);
+//   }
+// });
 
 // Express App
 exports.expressApp = functions.https.onRequest(app);
