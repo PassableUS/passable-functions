@@ -30,7 +30,7 @@ const doesSchoolExistAsync = async (schoolPlaceID: string) => {
 
 schoolsRouter.post('/createSchool', async (req: Request, res: Response) => {
   // get request input
-  const { email, password, fullName, schoolName, schoolPlaceID } = req?.body?.input;
+  const { email, password, firstName, lastName, schoolName, schoolPlaceID } = req?.body?.input;
 
   let schoolID: string | null = null;
   let userUID: string | null = null;
@@ -74,18 +74,23 @@ schoolsRouter.post('/createSchool', async (req: Request, res: Response) => {
 
     // create corresponding database user (school admin) and set the user as an admin of the school (by adding the school id to the user's schools (add to users of school) and the user's schools_admins (add to admins of school))
     const createAdminUser = gql`
-      mutation CreateAdminUser($school_id: uuid = "", $user_id: uuid = "", $name: String = "") {
+      mutation CreateAdminUser(
+        $first_name: String = ""
+        $last_name: String = ""
+        $school_id: uuid = ""
+        $user_id: uuid = ""
+      ) {
         insert_users_one(
           object: {
-            name: $name
-            current_school_id: $school_id
-            schools_admins: { data: { school_id: $school_id } }
+            first_name: $first_name
+            last_name: $last_name
+            schools: { data: { id: $school_id } }
             id: $user_id
-            schools: { data: { school_id: $school_id } }
           }
         ) {
           id
-          name
+          first_name
+          last_name
         }
       }
     `;
@@ -93,7 +98,8 @@ schoolsRouter.post('/createSchool', async (req: Request, res: Response) => {
     const createAdminUserResponse = await graphQLClient.request(createAdminUser, {
       school_id: schoolID,
       user_id: userUID,
-      name: fullName,
+      first_name: firstName,
+      last_name: lastName,
     });
     databaseUserID = createAdminUserResponse['insert_users_one'].id;
 
