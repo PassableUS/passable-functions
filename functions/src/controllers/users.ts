@@ -1,6 +1,5 @@
-import express, { NextFunction, Request, Response } from 'express'
-const usersRouter = express.Router()
-// const User = require('../models/user');
+import express, { NextFunction, Request, Response } from 'express';
+const usersRouter = express.Router();
 
 usersRouter.post('/', async (req: Request, res: Response, next: NextFunction) => {
   try {

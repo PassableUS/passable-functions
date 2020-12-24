@@ -5,6 +5,7 @@ content-type: application/json
     "input": {"email": "testmgdeme@gmail.com",
     "password": "dgh728g7dsgdhjksdg",
     "schoolName": "Bro Moment",
-    "fullName": "Joseph Semrai",
+    "firstName": "Joseph",
+    "lastName": "Semrai",
     "schoolPlaceID": "121223123123"}
 }

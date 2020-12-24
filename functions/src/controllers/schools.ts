@@ -22,7 +22,7 @@ const doesSchoolExistAsync = async (schoolPlaceID: string) => {
   console.log('Matching schools length: ', matchingSchools.length);
 
   if (matchingSchools === undefined || matchingSchools.length === 0) {
-    console.log('School does not exist.');
+    console.log('School does not already exist. Proceed with creation.');
     return false;
   }
   return true;
@@ -62,6 +62,7 @@ schoolsRouter.post('/createSchool', async (req: Request, res: Response) => {
       place_id: schoolPlaceID,
     });
     schoolID = createSchoolResponse['insert_schools_one'].id;
+    console.log('Create school response', JSON.stringify(createSchoolResponse));
 
     // create user
     const user = await admin.auth().createUser({
@@ -72,6 +73,7 @@ schoolsRouter.post('/createSchool', async (req: Request, res: Response) => {
 
     userUID = user.uid;
 
+    console.log('Creating Admin User for School: ', schoolID);
     // create corresponding database user (school admin) and set the user as an admin of the school (by adding the school id to the user's schools (add to users of school) and the user's schools_admins (add to admins of school))
     const createAdminUser = gql`
       mutation CreateAdminUser(
@@ -84,8 +86,9 @@ schoolsRouter.post('/createSchool', async (req: Request, res: Response) => {
           object: {
             first_name: $first_name
             last_name: $last_name
-            schools: { data: { id: $school_id } }
+            schools_admins: { data: { school_id: $school_id } }
             id: $user_id
+            schools: { data: { school_id: $school_id } }
           }
         ) {
           id
