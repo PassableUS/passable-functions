@@ -16,29 +16,9 @@ import app from './app';
 admin.initializeApp(functions.config().firebase);
 
 // On sign up.
-exports.processSignUp = functions.auth.user().onCreate((user) => {
-  const customClaims = {
-    'https://hasura.io/jwt/claims': {
-      'x-hasura-default-role': 'user',
-      'x-hasura-allowed-roles': ['user'],
-      'x-hasura-user-id': user.uid,
-    },
-  };
-
-  return admin
-    .auth()
-    .setCustomUserClaims(user.uid, customClaims)
-    .then(() => {
-      // Update real-time database to notify client to force refresh.
-      const claimRef = admin.database().ref('claims/' + user.uid);
-      // Set the refresh time to the current UTC timestamp.
-      // This will be captured on the client to force a token refresh.
-      return claimRef.set({ refreshTime: new Date().getTime() });
-    })
-    .catch((error: Error) => {
-      console.log(error);
-    });
-});
+// exports.processSignUp = functions.auth.user().onCreate((user) => {
+//   return;
+// });
 
 // Update users table (handled by functions)
 // exports.syncDatabaseOnSignUp = functions.auth.user().onCreate(async (user) => {
@@ -64,8 +44,5 @@ exports.processSignUp = functions.auth.user().onCreate((user) => {
 exports.expressApp = functions.https.onRequest(app);
 
 // TODOS
-// Add function to add user to a school as a specific role, they must be an admin of the school to do so.
-// -> This will take the user's UID and the school's ID and create a row in school_assignments.
-// THIS CAN BE HANDLED CLIENT SIDE
 
 // Add user to take in CSV to bulk add users. The requesting user must be an admin of the school to do this.

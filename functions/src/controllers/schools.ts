@@ -1,10 +1,9 @@
 import { gql } from 'graphql-request';
 import { Request, Response } from 'express';
+import { createUser } from './users';
 
 const schoolsRouter = require('express').Router();
-const admin = require('firebase-admin');
 const { graphQLClient } = require('../utils/gqlClient');
-const { v4: uuidv4 } = require('uuid');
 
 const doesSchoolExistAsync = async (schoolPlaceID: string) => {
   const getSchoolQuery = gql`
@@ -32,10 +31,8 @@ schoolsRouter.post('/createSchool', async (req: Request, res: Response) => {
   // get request input
   const { email, password, firstName, lastName, schoolName, schoolPlaceID } = req?.body?.input;
 
-  let schoolID: string | null = null;
-  let userUID: string | null = null;
-  let databaseUserID: string | null = null;
-
+  let schoolID: string = '';
+  let userUid: string | null = null;
   // checks
   const doesSchoolExist = await doesSchoolExistAsync(schoolPlaceID);
   if (doesSchoolExist) {
@@ -45,7 +42,6 @@ schoolsRouter.post('/createSchool', async (req: Request, res: Response) => {
     });
   }
 
-  // run business logic
   try {
     // create school
     const createSchoolMutation = gql`
@@ -62,53 +58,14 @@ schoolsRouter.post('/createSchool', async (req: Request, res: Response) => {
       place_id: schoolPlaceID,
     });
     schoolID = createSchoolResponse['insert_schools_one'].id;
-    console.log('Create school response', JSON.stringify(createSchoolResponse));
 
-    // create user
-    const user = await admin.auth().createUser({
-      uid: uuidv4(),
-      email,
-      password,
-    });
+    // console.log('Create school response', JSON.stringify(createSchoolResponse));
 
-    userUID = user.uid;
-
-    console.log('Creating Admin User for School: ', schoolID);
-    // create corresponding database user (school admin) and set the user as an admin of the school (by adding the school id to the user's schools (add to users of school) and the user's schools_admins (add to admins of school))
-    const createAdminUser = gql`
-      mutation CreateAdminUser(
-        $first_name: String = ""
-        $last_name: String = ""
-        $school_id: uuid = ""
-        $user_id: uuid = ""
-      ) {
-        insert_users_one(
-          object: {
-            first_name: $first_name
-            last_name: $last_name
-            schools_admins: { data: { school_id: $school_id } }
-            id: $user_id
-            schools: { data: { school_id: $school_id } }
-          }
-        ) {
-          id
-          first_name
-          last_name
-        }
-      }
-    `;
-    // @ts-ignore
-    const createAdminUserResponse = await graphQLClient.request(createAdminUser, {
-      school_id: schoolID,
-      user_id: userUID,
-      first_name: firstName,
-      last_name: lastName,
-    });
-    databaseUserID = createAdminUserResponse['insert_users_one'].id;
+    userUid = await createUser(email, password, firstName, lastName, schoolID, 'admin');
 
     // On Success
     return res.json({
-      userUid: databaseUserID,
+      userUid,
     });
   } catch (e) {
     if (schoolID) {
@@ -121,23 +78,6 @@ schoolsRouter.post('/createSchool', async (req: Request, res: Response) => {
         }
       `;
       await graphQLClient.request(deleteSchoolMutation, { id: schoolID });
-    }
-
-    if (userUID) {
-      // Delete firebase user
-      await admin.auth().deleteUser(userUID);
-    }
-
-    if (databaseUserID) {
-      // Delete database record for user
-      const deleteAssociatedUser = gql`
-        mutation DeleteUser($id: uuid!) {
-          delete_users_by_pk(id: $id) {
-            id
-          }
-        }
-      `;
-      await graphQLClient.request(deleteAssociatedUser, { id: userUID });
     }
 
     return res.status(400).json({
