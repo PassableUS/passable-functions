@@ -8,7 +8,7 @@ const { v4: uuidv4 } = require('uuid');
 
 const STUDENT_PERMISSIONS = [4];
 const TEACHER_PERMISSIONS = [4, 5]; // Added on to default permissions
-const ADMIN_PERMISSIONS = [4, 5, 6]; // Added on to default permissions
+const ADMIN_PERMISSIONS = [4, 5, 6, 7]; // Added on to default permissions
 
 export const updatePermissions = async (
   permissionsArray: number[],
@@ -71,6 +71,8 @@ export const createUser = async (
 ) => {
   let userUID: any = null;
   let databaseUserID: string | null = null;
+
+  const lowercaseUserRole = userRole.toLowerCase();
 
   // Validation
   if (userRole !== 'student' && userRole !== 'admin' && userRole !== 'teacher') {
@@ -151,15 +153,15 @@ export const createUser = async (
       user_id: userUID,
       first_name: firstName,
       last_name: lastName,
-      user_role: userRole,
+      user_role: lowercaseUserRole,
     });
     databaseUserID = createUserResponse['insert_users_one'].id;
 
     // Handle adding permissions to user
     const permissionsArray = [];
-    if (userRole === 'student') permissionsArray.push(...STUDENT_PERMISSIONS);
-    if (userRole === 'teacher') permissionsArray.push(...TEACHER_PERMISSIONS);
-    if (userRole === 'admin') permissionsArray.push(...ADMIN_PERMISSIONS);
+    if (lowercaseUserRole === 'student') permissionsArray.push(...STUDENT_PERMISSIONS);
+    if (lowercaseUserRole === 'teacher') permissionsArray.push(...TEACHER_PERMISSIONS);
+    if (lowercaseUserRole === 'admin') permissionsArray.push(...ADMIN_PERMISSIONS);
     await updatePermissions(permissionsArray, userUID, schoolID);
 
     // On Success
