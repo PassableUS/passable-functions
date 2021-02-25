@@ -156,7 +156,7 @@ export const createUser = async (
       first_name: firstName,
       last_name: lastName,
       user_role: lowercaseUserRole,
-      full_name: firstName + lastName,
+      full_name: firstName + ' ' + lastName,
     });
     databaseUserID = createUserResponse['insert_users_one'].id;
 
