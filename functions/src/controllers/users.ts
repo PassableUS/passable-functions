@@ -1,4 +1,4 @@
-import express, { NextFunction, Request, Response } from 'express';
+import express, { Request, Response } from 'express';
 import { gql } from 'graphql-request';
 import { graphQLClient } from '../utils/gqlClient';
 const usersRouter = express.Router();
@@ -122,6 +122,7 @@ export const createUser = async (
       mutation CreateUser(
         $first_name: String = ""
         $last_name: String = ""
+        $full_name: String = ""
         $user_role: String = ""
         $school_id: uuid = ""
         $user_id: uuid = ""
@@ -130,6 +131,7 @@ export const createUser = async (
           object: {
             first_name: $first_name
             last_name: $last_name
+            full_name: $full_name
             id: $user_id
             schools: { data: { school_id: $school_id, role: $user_role } }
             # permissions: {
@@ -154,6 +156,7 @@ export const createUser = async (
       first_name: firstName,
       last_name: lastName,
       user_role: lowercaseUserRole,
+      full_name: firstName + ' ' + lastName,
     });
     databaseUserID = createUserResponse['insert_users_one'].id;
 
@@ -188,17 +191,7 @@ export const createUser = async (
   }
 };
 
-usersRouter.post('/', async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    console.log('Hit post');
-
-    return res.json({ msg: 'I See You' });
-  } catch (exception) {
-    return next(exception);
-  }
-});
-
-usersRouter.get('/createUser', async (req: Request, res: Response) => {
+usersRouter.post('/createUser', async (req: Request, res: Response) => {
   let userUid;
   try {
     const { email, password, firstName, lastName, schoolID, userRole } = req.body.input;

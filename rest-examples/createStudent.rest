@@ -1,0 +1,11 @@
+POST http://localhost:5001/passable-a4dba/us-central1/expressApp/users/createUser HTTP/1.1
+content-type: application/json
+
+{
+    "input": {"email": "testmgdeme@gmail.com",
+    "password": "Thisisapassword",
+    "userRole": "student",
+    "firstName": "Joseph",
+    "lastName": "Semrai",
+    "schoolID": "121223123123"}
+}
