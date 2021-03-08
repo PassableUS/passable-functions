@@ -7,8 +7,8 @@ const admin = require('firebase-admin');
 const { v4: uuidv4 } = require('uuid');
 
 const STUDENT_PERMISSIONS = [4];
-const TEACHER_PERMISSIONS = [4, 5]; // Added on to default permissions
-const ADMIN_PERMISSIONS = [4, 5, 6, 7]; // Added on to default permissions
+const TEACHER_PERMISSIONS = [4, 5, 8]; // Added on to default permissions
+const ADMIN_PERMISSIONS = [4, 5, 6, 7, 8]; // Added on to default permissions
 
 export const updatePermissions = async (
   permissionsArray: number[],
